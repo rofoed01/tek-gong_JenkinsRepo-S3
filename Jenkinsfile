@@ -1,5 +1,9 @@
 pipeline {
     agent any
+    tools {
+        docker 'docker-cli'
+    }
+    
     environment {
         AWS_REGION = 'us-west-2' 
     }
@@ -23,7 +27,27 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/rofoed01/tek-gong_JenkinsRepo-S3' 
             }
         }
-        
+
+// dastardly docker pull
+        stage ("Docker Pull Dastardly from Burp Suite container image") {
+            steps {
+                sh 'sudo docker pull public.ecr.aws/portswigger/dastardly:latest'
+            }
+        }
+
+// dastardly docker run (https://ginandjuice.shop/)
+        stage ("Docker run Dastardly from Burp Suite Scan") {
+            steps {
+                cleanWs()
+                sh '''
+                    docker run --user $(id -u) -v ${WORKSPACE}:${WORKSPACE}:rw \
+                    -e BURP_START_URL=https://ginandjuice.shop/ \
+                    -e BURP_REPORT_FILE_PATH=${WORKSPACE}/dastardly-report.xml \
+                    public.ecr.aws/portswigger/dastardly:latest
+                '''
+            }
+        }
+
         stage('Initialize Terraform') {
             steps {
                 sh '''
@@ -70,28 +94,6 @@ pipeline {
                 }
             }
         }
-
-// dastardly docker pull
-        stage ("Docker Pull Dastardly from Burp Suite container image") {
-            steps {
-                sh 'docker pull public.ecr.aws/portswigger/dastardly:latest'
-            }
-        }
-
-// dastardly docker run (https://ginandjuice.shop/)
-        stage ("Docker run Dastardly from Burp Suite Scan") {
-            steps {
-                cleanWs()
-                sh '''
-                    docker run --user $(id -u) -v ${WORKSPACE}:${WORKSPACE}:rw \
-                    -e BURP_START_URL=https://ginandjuice.shop/ \
-                    -e BURP_REPORT_FILE_PATH=${WORKSPACE}/dastardly-report.xml \
-                    public.ecr.aws/portswigger/dastardly:latest
-                '''
-            }
-        }
-
-
 
         stage ('Destroy Terraform') {
             steps {
