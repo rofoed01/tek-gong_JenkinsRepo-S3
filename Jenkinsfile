@@ -31,7 +31,7 @@ pipeline {
 // dastardly docker pull
         stage ("Docker Pull Dastardly from Burp Suite container image") {
             steps {
-                sh 'sudo docker pull public.ecr.aws/portswigger/dastardly:latest'
+                sh 'docker pull public.ecr.aws/portswigger/dastardly:latest'
             }
         }
 
