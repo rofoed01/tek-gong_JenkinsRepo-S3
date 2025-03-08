@@ -29,14 +29,13 @@ pipeline {
         }
 
 // dastardly docker pull
-        stage ("Docker Pull Dastardly from Burp Suite container image") {
-            steps {
-                sh 'docker pull public.ecr.aws/portswigger/dastardly:latest'
-            }
-        }
-
-// dastardly docker run (https://ginandjuice.shop/)
         stage ("Docker run Dastardly from Burp Suite Scan") {
+            agent {         
+                docker {          
+                    image 'public.ecr.aws/portswigger/dastardly:latest'         
+                }       
+            }       
+                       
             steps {
                 cleanWs()
                 sh '''
