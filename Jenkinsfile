@@ -1,9 +1,5 @@
 pipeline {
     agent any
-    tools {
-        dockerTool 'docker-cli'
-    }
-    
     environment {
         AWS_REGION = 'us-west-2' 
     }
@@ -31,7 +27,7 @@ pipeline {
 // dastardly docker pull
         stage ("Docker run Dastardly from Burp Suite Scan") {
             agent {         
-                docker {          
+                dockerContainer {          
                     image 'public.ecr.aws/portswigger/dastardly:latest'         
                 }       
             }       
@@ -39,7 +35,8 @@ pipeline {
             steps {
                 cleanWs()
                 sh '''
-                    docker run --user $(id -u) -v ${WORKSPACE}:${WORKSPACE}:rw \
+                    
+                    docker run --rm --user $(id -u) -v ${WORKSPACE}:${WORKSPACE}:rw \
                     -e BURP_START_URL=https://ginandjuice.shop/ \
                     -e BURP_REPORT_FILE_PATH=${WORKSPACE}/dastardly-report.xml \
                     public.ecr.aws/portswigger/dastardly:latest
